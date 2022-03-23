@@ -310,7 +310,12 @@ impl<W: io::Write> Serializer<W> {
     }
 
     fn should_write_hex(&self) -> bool {
-        (&self.pretty).map(|(c,p)|c.integers_are_hex).unwrap_or(false)
+        if let Some((c, p)) = &self.pretty {
+            if c.integers_are_hex {
+                return true;
+            }
+        }
+        false
     }
 
     fn start_indent(&mut self) -> Result<()> {
