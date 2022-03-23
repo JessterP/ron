@@ -90,6 +90,8 @@ pub struct PrettyConfig {
     pub extensions: Extensions,
     /// Enable compact arrays
     pub compact_arrays: bool,
+
+    pub integers_are_hex: bool,
 }
 
 impl PrettyConfig {
@@ -185,6 +187,14 @@ impl PrettyConfig {
         self
     }
 
+
+    /// Ron Serializer will emit hex integers instead of decimal
+    pub fn integers_are_hex(mut self, integers_are_hex: bool) -> Self {
+        self.integers_are_hex = integers_are_hex;
+
+        self
+    }
+
     /// Configures extensions
     ///
     /// Default: Extensions::empty()
@@ -211,6 +221,7 @@ impl Default for PrettyConfig {
             enumerate_arrays: false,
             extensions: Extensions::empty(),
             compact_arrays: false,
+            integers_are_hex: false,
         }
     }
 }
@@ -298,6 +309,10 @@ impl<W: io::Write> Serializer<W> {
                 .map_or(Extensions::empty(), |&(ref config, _)| config.extensions)
     }
 
+    fn should_write_hex(&self) -> bool {
+        self.pretty.map(|(c,p)|c.integers_are_hex).unwrap_or(false)
+    }
+
     fn start_indent(&mut self) -> Result<()> {
         if let Some((ref config, ref mut pretty)) = self.pretty {
             pretty.indent += 1;
@@ -354,14 +369,22 @@ impl<W: io::Write> Serializer<W> {
 
     fn serialize_sint(&mut self, value: impl Into<LargeSInt>) -> Result<()> {
         // TODO optimize
-        write!(self.output, "{}", value.into())?;
+        if self.should_write_hex() {
+            write!(self.output, "{:X}", value.into())?;
+        } else {
+            write!(self.output, "{}", value.into())?;
+        }
 
         Ok(())
     }
 
     fn serialize_uint(&mut self, value: impl Into<LargeUInt>) -> Result<()> {
         // TODO optimize
-        write!(self.output, "{}", value.into())?;
+        if self.should_write_hex() {
+            write!(self.output, "{:X}", value.into())?;
+        } else {
+            write!(self.output, "{}", value.into())?;
+        }
 
         Ok(())
     }
