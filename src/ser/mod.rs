@@ -310,7 +310,7 @@ impl<W: io::Write> Serializer<W> {
     }
 
     fn should_write_hex(&self) -> bool {
-        self.pretty.map(|(c,p)|c.integers_are_hex).unwrap_or(false)
+        (&self.pretty).map(|(c,p)|c.integers_are_hex).unwrap_or(false)
     }
 
     fn start_indent(&mut self) -> Result<()> {
@@ -370,7 +370,7 @@ impl<W: io::Write> Serializer<W> {
     fn serialize_sint(&mut self, value: impl Into<LargeSInt>) -> Result<()> {
         // TODO optimize
         if self.should_write_hex() {
-            write!(self.output, "{:X}", value.into())?;
+            write!(self.output, "0x{:X}", value.into())?;
         } else {
             write!(self.output, "{}", value.into())?;
         }
@@ -381,7 +381,7 @@ impl<W: io::Write> Serializer<W> {
     fn serialize_uint(&mut self, value: impl Into<LargeUInt>) -> Result<()> {
         // TODO optimize
         if self.should_write_hex() {
-            write!(self.output, "{:X}", value.into())?;
+            write!(self.output, "0x{:X}", value.into())?;
         } else {
             write!(self.output, "{}", value.into())?;
         }
